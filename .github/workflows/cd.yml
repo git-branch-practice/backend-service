@@ -1,0 +1,25 @@
+name: CD - Backend Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - release/*
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    name: Deploy to Server
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Deploy with script
+        run: |
+          cd deploy
+          chmod +x *.sh   # 모든 쉘 스크립트 실행 권한 부여
+          ./stop.sh 
+          ./start.sh
+          ./validate.sh
+          
