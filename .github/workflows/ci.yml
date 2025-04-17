@@ -1,0 +1,27 @@
+name: CI - Build & Lint
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+      - release/*
+      - hotfix/*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build with Gradle
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: temurin
+
+      - name: Build with Gradle
+        run: ./gradlew clean build

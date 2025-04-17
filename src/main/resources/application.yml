@@ -1,1 +1,22 @@
-spring.application.name=backend
+spring:
+  datasource:
+    url: jdbc:mysql://34.64.63.209:3306/guestbook
+    username: guest
+    password: guest1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: 34.64.63.209
+      port: 6379
+
+server:
+  port: 8080
