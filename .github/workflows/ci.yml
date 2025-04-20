@@ -50,3 +50,5 @@ jobs:
       - name: Upload deploy scripts to GCS
         run: |
           gsutil cp ./deploy/*.sh gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/
+
+# This is PR-CI Test
