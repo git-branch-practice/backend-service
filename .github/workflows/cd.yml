@@ -1,4 +1,4 @@
-name: 🚀 CD - Backend Deploy from GCS
+name: CD - Backend Deploy from GCS
 
 on:
   push:
@@ -9,9 +9,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-22.04
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
 
     steps:
-      - name: Install gcloud SDK
+      - name: Authenticate to GCP
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
@@ -20,7 +22,7 @@ jobs:
 
       - name: Download .jar from GCS
         run: |
-          gsutil cp gs://${{ secrets.GCS_BUCKET }}/backend/$GITHUB_SHA.jar ./app.jar
+          gsutil cp gs://${{ secrets.GCS_BUCKET }}/backend/${{ github.sha }}.jar ./app.jar
 
       - name: Create SSH private key file
         run: |
@@ -29,7 +31,7 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Transfer JAR and deployment scripts to server
+      - name: Transfer JAR and deploy scripts to server
         run: |
           scp -o StrictHostKeyChecking=no -i private_key.pem ./app.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/deploy/
           scp -o StrictHostKeyChecking=no -i private_key.pem ./deploy/*.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/deploy/
@@ -40,7 +42,11 @@ jobs:
       - name: Execute stop → start → validate
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
-            bash ~/deploy/stop.sh &&
-            bash ~/deploy/start.sh &&
+            set -e
+            bash ~/deploy/stop.sh
+            bash ~/deploy/start.sh
             bash ~/deploy/validate.sh
           '
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
