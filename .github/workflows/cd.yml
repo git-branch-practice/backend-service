@@ -63,7 +63,7 @@ jobs:
             else
               cd ~/backend-service && git fetch && git checkout $GIT_BRANCH && git pull
             fi
-            cp ~/backend-service/backend/deploy/*.sh ~/deploy/backend/
+            cp ~/backend-service/deploy/*.sh ~/deploy/backend/
           "
 
       - name: Execute stop → start → validate
