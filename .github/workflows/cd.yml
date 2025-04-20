@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy Backend to Server
 
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -22,17 +25,18 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy by Branch Type
+      - name: Upload deploy scripts to VM
+        run: |
+          scp -o StrictHostKeyChecking=no -i private_key.pem ./deploy/*.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/deploy/
+
+      - name: Run stop → start → validate
         run: |
           BRANCH_NAME=${GITHUB_REF##*/}
-          if [[ "$BRANCH_NAME" == "main" ]]; then
-            ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'bash ~/deploy/start-main.sh'
-          elif [[ "$BRANCH_NAME" == "develop" ]]; then
-            ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'bash ~/deploy/start-dev.sh'
-          else
-            echo "❌ 이 브랜치는 배포 대상이 아닙니다."
-            exit 1
-          fi
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+            bash ~/deploy/stop.sh &&
+            bash ~/deploy/start.sh &&
+            bash ~/deploy/validate.sh
+          '
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
