@@ -51,8 +51,7 @@ jobs:
       - name: Transfer JAR and deploy scripts
         run: |
           scp -o StrictHostKeyChecking=no -i private_key.pem ./app.jar $SSH_USER@$SSH_HOST:~/deploy/backend/
-          scp -o StrictHostKeyChecking=no -i private_key.pem backend/deploy/*.sh $SSH_USER@$SSH_HOST:~/deploy/backend/
-
+          scp -o StrictHostKeyChecking=no -i private_key.pem ./backend/deploy/*.sh $SSH_USER@$SSH_HOST:~/deploy/backend/
 
       - name: Execute stop → start → validate
         run: |
