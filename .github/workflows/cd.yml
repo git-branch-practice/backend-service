@@ -1,8 +1,11 @@
 name: CD - Backend Deploy from GCS
 
 on:
-  push:
-    branches: [main, develop]
+  workflow_run:
+    workflows: ["CI - Backend Build & Upload to GCS"]
+    types:
+      - completed
+
 
 jobs:
   deploy:
