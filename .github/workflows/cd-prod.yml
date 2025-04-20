@@ -1,7 +1,8 @@
 name: CD - Deploy to Production (Manual)
 
 on:
-  workflow_dispatch:  # 수동 실행 트리거
+  push:
+    branches: [main]
 
 jobs:
   deploy:
