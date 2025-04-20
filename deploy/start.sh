@@ -8,10 +8,15 @@ if [ -n "$PID" ]; then
   kill -9 $PID
 fi
 
-# JAR 실행
-JAR_PATH=$(find ../backend/build/libs -name "*.jar" | head -n 1)
+# JAR 실행 (복사된 ~/deploy 경로 기준)
+JAR_PATH=$(ls -t ~/deploy/*.jar | head -n 1)
+
+if [ -z "$JAR_PATH" ]; then
+  echo "[CD] ❌ No JAR file found to execute."
+  exit 1
+fi
 
 echo "[CD] Running $JAR_PATH"
-nohup java -jar "$JAR_PATH" > spring.log 2>&1 &
+nohup java -jar "$JAR_PATH" > ~/deploy/spring.log 2>&1 &
 
 echo "[CD] Spring Boot started."
