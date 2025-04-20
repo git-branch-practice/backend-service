@@ -1,8 +1,10 @@
 name: CD - Deploy to Staging (Develop)
 
 on:
-  push:
-    branches: [develop]
+  workflow_run:
+    workflows: ["CI - Backend Build & Upload to GCS"]
+    types:
+      - completed
 
 jobs:
   deploy:
