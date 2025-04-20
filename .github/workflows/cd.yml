@@ -1,16 +1,19 @@
-name: CD - Backend Deploy
+name: 🚀 CD - Backend Deploy to Server
 
 on:
-  push:
-    branches:
-      - develop
-      - main
+  workflow_run:
+    workflows: ["🧪 CI - Backend Build & Upload JAR"]
+    types:
+      - completed
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-22.04
+    name: Deploy to VM
+
     environment:
-      name: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+      name: ${{ github.event.workflow_run.head_branch == 'main' && 'production' || 'staging' }}
 
     steps:
       - name: Download build artifact
@@ -18,7 +21,7 @@ jobs:
         with:
           name: backend-jar
 
-      - name: Create private key file
+      - name: Create SSH private key file
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
