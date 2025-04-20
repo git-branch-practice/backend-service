@@ -22,7 +22,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew clean build
+        run: ./gradlew clean bootJar
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
@@ -44,11 +44,9 @@ jobs:
 
       - name: Upload .jar to GCS
         run: |
-          FILE_PATH=$(ls ./build/libs/*.jar | head -n 1)
-          gsutil cp "$FILE_PATH" gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/${{ github.sha }}.jar
+          FILE_PATH=$(ls ./build/libs/*-boot.jar | head -n 1)
+          gsutil cp "$FILE_PATH" gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/app.jar
 
       - name: Upload deploy scripts to GCS
         run: |
           gsutil cp ./deploy/*.sh gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/
-
-# This is PR-CI Test
