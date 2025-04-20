@@ -1,14 +1,12 @@
 #!/bin/bash
 echo "[CD] Validating Spring Boot is running..."
 
-HEALTH_CHECK_URL="http://localhost:8080/health"
-
-# 서버가 뜨는 시간 고려해서 잠깐 대기 (선택)
-sleep 3
+HEALTH_CHECK_URL="http://localhost:8080"
+sleep 3  # 서버 기동 시간 고려
 
 RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -X GET $HEALTH_CHECK_URL)
 
-# 응답 추출
+# 본문과 상태코드 분리
 BODY=$(echo $RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
 STATUS=$(echo $RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
 
