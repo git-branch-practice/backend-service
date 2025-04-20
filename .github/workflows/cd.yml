@@ -3,23 +3,31 @@ name: CD - Backend Deploy
 on:
   push:
     branches:
+      - develop
       - main
-      - release/*
 
 jobs:
   deploy:
-    runs-on: self-hosted
-    name: Deploy to Server
+    runs-on: ubuntu-latest
+    name: Deploy Backend to Server
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Deploy with script
+      - name: Deploy by Branch Type
         run: |
-          cd deploy
-          chmod +x *.sh   # 모든 쉘 스크립트 실행 권한 부여
-          ./stop.sh 
-          ./start.sh
-          ./validate.sh
+          BRANCH_NAME=${GITHUB_REF##*/}
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'bash ~/deploy/start-main.sh'
+          elif [[ "$BRANCH_NAME" == "develop" ]]; then
+            ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'bash ~/deploy/start-dev.sh'
+          else
+            echo "❌ 이 브랜치는 배포 대상이 아닙니다."
+            exit 1
+          fi
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
           
