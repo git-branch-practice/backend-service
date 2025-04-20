@@ -27,17 +27,17 @@ jobs:
             echo "TARGET_ENV=prod" >> $GITHUB_ENV
             echo "SSH_USER=${{ secrets.PROD_SSH_USER }}" >> $GITHUB_ENV
             echo "SSH_HOST=${{ secrets.PROD_SSH_HOST }}" >> $GITHUB_ENV
-            echo "GIT_BRANCH=main" >> $GITHUB_ENV
           else
             echo "TARGET_ENV=dev" >> $GITHUB_ENV
             echo "SSH_USER=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_ENV
             echo "SSH_HOST=${{ secrets.DEV_SSH_HOST }}" >> $GITHUB_ENV
-            echo "GIT_BRANCH=develop" >> $GITHUB_ENV
           fi
 
-      - name: Download .jar from GCS
+      - name: Download files from GCS
         run: |
-          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/${{ github.sha }}.jar ./app.jar
+          mkdir -p scripts
+          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/${{ github.sha }}.jar ./scripts/app.jar
+          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/*.sh ./scripts/
 
       - name: Create SSH private key file
         run: |
@@ -46,13 +46,10 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Transfer JAR to server
+      - name: Transfer files to server
         run: |
-          scp -o StrictHostKeyChecking=no -i private_key.pem ./app.jar $SSH_USER@$SSH_HOST:~/deploy/backend/
-
-      - name: Transfer deploy scripts to server
-        run: |
-          scp -o StrictHostKeyChecking=no -i private_key.pem ${{ github.workspace }}/deploy/*.sh $SSH_USER@$SSH_HOST:~/deploy/backend/
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "mkdir -p ~/deploy/backend"
+          scp -o StrictHostKeyChecking=no -i private_key.pem ./scripts/* $SSH_USER@$SSH_HOST:~/deploy/backend/
 
       - name: Execute stop → start → validate
         run: |
