@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-22.04
     environment:
       name: staging
@@ -33,7 +33,7 @@ jobs:
       - name: Download from GCS
         run: |
           mkdir -p scripts
-          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/${{ github.event.workflow_run.head_sha }}.jar ./scripts/app.jar
+          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/app.jar ./scripts/app.jar
           gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/*.sh ./scripts/
 
       - name: Create SSH private key
@@ -43,7 +43,7 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy
+      - name: Deploy to staging server
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "mkdir -p ~/deploy/backend"
           scp -o StrictHostKeyChecking=no -i private_key.pem ./scripts/* $SSH_USER@$SSH_HOST:~/deploy/backend/
