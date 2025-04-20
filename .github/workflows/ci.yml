@@ -36,9 +36,17 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
+      - name: Set environment prefix
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "TARGET_ENV=prod" >> $GITHUB_ENV
+          else
+            echo "TARGET_ENV=dev" >> $GITHUB_ENV
+          fi
+
       - name: Upload .jar to GCS
         run: |
           FILE_PATH=$(ls ./build/libs/*.jar | head -n 1)
           FILE_NAME=$(basename "$FILE_PATH")
-          echo "Uploading $FILE_NAME to GCS..."
-          gsutil cp "$FILE_PATH" gs://${{ secrets.GCS_BUCKET }}/backend/$GITHUB_SHA.jar
+          echo "Uploading $FILE_NAME to $TARGET_ENV..."
+          gsutil cp "$FILE_PATH" gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/$GITHUB_SHA.jar
