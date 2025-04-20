@@ -27,10 +27,12 @@ jobs:
             echo "TARGET_ENV=prod" >> $GITHUB_ENV
             echo "SSH_USER=${{ secrets.PROD_SSH_USER }}" >> $GITHUB_ENV
             echo "SSH_HOST=${{ secrets.PROD_SSH_HOST }}" >> $GITHUB_ENV
+            echo "GIT_BRANCH=main" >> $GITHUB_ENV
           else
             echo "TARGET_ENV=dev" >> $GITHUB_ENV
             echo "SSH_USER=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_ENV
             echo "SSH_HOST=${{ secrets.DEV_SSH_HOST }}" >> $GITHUB_ENV
+            echo "GIT_BRANCH=develop" >> $GITHUB_ENV
           fi
 
       - name: Download .jar from GCS
@@ -48,17 +50,28 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "mkdir -p ~/deploy/backend"
 
-      - name: Transfer JAR and deploy scripts
+      - name: Transfer JAR to server
         run: |
           scp -o StrictHostKeyChecking=no -i private_key.pem ./app.jar $SSH_USER@$SSH_HOST:~/deploy/backend/
-          scp -o StrictHostKeyChecking=no -i private_key.pem ./backend/deploy/*.sh $SSH_USER@$SSH_HOST:~/deploy/backend/
+
+      - name: Git pull deploy scripts on server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "
+            set -e
+            if [ ! -d '~/backend-service' ]; then
+              git clone --branch $GIT_BRANCH https://github.com/git-branch-practice/backend-service.git ~/backend-service
+            else
+              cd ~/backend-service && git fetch && git checkout $GIT_BRANCH && git pull
+            fi
+            cp ~/backend-service/backend/deploy/*.sh ~/deploy/backend/
+          "
 
       - name: Execute stop → start → validate
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST '
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "
             set -e
             cd ~/deploy/backend
             bash stop.sh
             bash start.sh
             bash validate.sh
-          '
+          "
