@@ -15,6 +15,13 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Create private key file
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Deploy by Branch Type
         run: |
           BRANCH_NAME=${GITHUB_REF##*/}
@@ -27,7 +34,5 @@ jobs:
             exit 1
           fi
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
-          
