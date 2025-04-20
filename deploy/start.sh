@@ -1,22 +1,22 @@
 #!/bin/bash
-echo "[CD] Validating Spring Boot is running..."
+echo "[CD] Start Spring Boot Server..."
 
-HEALTH_CHECK_URL="http://localhost:8080/healthz"
-sleep 3  # 서버 기동 시간 고려
+# 실행 중인 프로세스가 있다면 종료 (예: port 8080)
+PID=$(lsof -t -i:8080)
+if [ -n "$PID" ]; then
+  echo "[CD] Stopping existing process on port 8080..."
+  kill -9 $PID
+fi
 
-RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -X GET $HEALTH_CHECK_URL)
+# JAR 실행 (복사된 ~/deploy 경로 기준)
+JAR_PATH=$(ls -t ~/deploy/backend/*.jar | head -n 1)
 
-# 본문과 상태코드 분리
-BODY=$(echo $RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
-STATUS=$(echo $RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
-
-APP_STATUS=$(echo "$BODY" | grep -o '"status":"[^"]*"' | cut -d':' -f2 | tr -d '"')
-
-if [ "$STATUS" -eq 200 ] && [ "$APP_STATUS" = "UP" ]; then
-  echo "[CD] ✅ Health check passed. (App Status: $APP_STATUS)"
-  exit 0
-else
-  echo "[CD] ❌ Health check failed. (HTTP $STATUS, App Status: $APP_STATUS)"
-  echo "Response Body: $BODY"
+if [ -z "$JAR_PATH" ]; then
+  echo "[CD] ❌ No JAR file found to execute."
   exit 1
 fi
+
+echo "[CD] Running $JAR_PATH"
+nohup java -jar "$JAR_PATH" > ~/deploy/spring.log 2>&1 &
+
+echo "[CD] Spring Boot started."
