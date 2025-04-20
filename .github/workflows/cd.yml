@@ -58,12 +58,12 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "
             set -e
-            if [ ! -d '~/backend-service' ]; then
-              git clone --branch $GIT_BRANCH https://github.com/git-branch-practice/backend-service.git ~/backend-service
+            if [ ! -d ~/deploy/scripts/.git ]; then
+              git clone --depth 1 --branch $GIT_BRANCH https://github.com/git-branch-practice/backend-service.git ~/deploy/scripts
             else
-              cd ~/backend-service && git fetch && git checkout $GIT_BRANCH && git pull
+              cd ~/deploy/scripts && git fetch && git checkout $GIT_BRANCH && git pull
             fi
-            cp ~/backend-service/deploy/*.sh ~/deploy/backend/
+            cp ~/deploy/scripts/backend/deploy/*.sh ~/deploy/backend/
           "
 
       - name: Execute stop → start → validate
