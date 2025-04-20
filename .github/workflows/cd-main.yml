@@ -1,17 +1,13 @@
-name: CD - Backend Deploy from GCS
+name: CD - Deploy to Production (Manual)
 
 on:
-  workflow_run:
-    workflows: ["CI - Backend Build & Upload to GCS"]
-    types:
-      - completed
-
+  workflow_dispatch:  # 수동 실행 트리거
 
 jobs:
   deploy:
     runs-on: ubuntu-22.04
     environment:
-      name: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+      name: production
 
     steps:
       - name: Authenticate to GCP
@@ -24,38 +20,29 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Set env by branch
+      - name: Set env for main
         run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "TARGET_ENV=prod" >> $GITHUB_ENV
-            echo "SSH_USER=${{ secrets.PROD_SSH_USER }}" >> $GITHUB_ENV
-            echo "SSH_HOST=${{ secrets.PROD_SSH_HOST }}" >> $GITHUB_ENV
-          else
-            echo "TARGET_ENV=dev" >> $GITHUB_ENV
-            echo "SSH_USER=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_ENV
-            echo "SSH_HOST=${{ secrets.DEV_SSH_HOST }}" >> $GITHUB_ENV
-          fi
+          echo "TARGET_ENV=prod" >> $GITHUB_ENV
+          echo "SSH_USER=${{ secrets.PROD_SSH_USER }}" >> $GITHUB_ENV
+          echo "SSH_HOST=${{ secrets.PROD_SSH_HOST }}" >> $GITHUB_ENV
 
       - name: Download files from GCS
         run: |
           mkdir -p scripts
-          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/${{ github.sha }}.jar ./scripts/app.jar
+          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/*.jar ./scripts/app.jar
           gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/*.sh ./scripts/
 
-      - name: Create SSH private key file
+      - name: Create SSH private key
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Transfer files to server
+      - name: Deploy to production server
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "mkdir -p ~/deploy/backend"
           scp -o StrictHostKeyChecking=no -i private_key.pem ./scripts/* $SSH_USER@$SSH_HOST:~/deploy/backend/
-
-      - name: Execute stop → start → validate
-        run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "
             set -e
             cd ~/deploy/backend
