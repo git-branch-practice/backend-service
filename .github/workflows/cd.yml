@@ -46,17 +46,13 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Ensure backend deploy dir exists
-        run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "mkdir -p ~/deploy/backend"
-
       - name: Transfer JAR to server
         run: |
           scp -o StrictHostKeyChecking=no -i private_key.pem ./app.jar $SSH_USER@$SSH_HOST:~/deploy/backend/
 
       - name: Transfer deploy scripts to server
         run: |
-          scp -o StrictHostKeyChecking=no -i private_key.pem ./deploy/*.sh $SSH_USER@$SSH_HOST:~/deploy/backend/
+          scp -o StrictHostKeyChecking=no -i private_key.pem ${{ github.workspace }}/deploy/*.sh $SSH_USER@$SSH_HOST:~/deploy/backend/
 
       - name: Execute stop → start → validate
         run: |
