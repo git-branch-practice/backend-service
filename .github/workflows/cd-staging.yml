@@ -8,6 +8,7 @@ on:
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop' }}
     runs-on: ubuntu-22.04
     environment:
       name: staging
@@ -23,16 +24,16 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Set env for develop
+      - name: Set env
         run: |
           echo "TARGET_ENV=dev" >> $GITHUB_ENV
           echo "SSH_USER=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_ENV
           echo "SSH_HOST=${{ secrets.DEV_SSH_HOST }}" >> $GITHUB_ENV
 
-      - name: Download files from GCS
+      - name: Download from GCS
         run: |
           mkdir -p scripts
-          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/${{ github.sha }}.jar ./scripts/app.jar
+          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/${{ github.event.workflow_run.head_sha }}.jar ./scripts/app.jar
           gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/*.sh ./scripts/
 
       - name: Create SSH private key
@@ -42,14 +43,13 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to test server
+      - name: Deploy
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "mkdir -p ~/deploy/backend"
           scp -o StrictHostKeyChecking=no -i private_key.pem ./scripts/* $SSH_USER@$SSH_HOST:~/deploy/backend/
           ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "
-            set -e
-            cd ~/deploy/backend
-            bash stop.sh
-            bash start.sh
+            cd ~/deploy/backend &&
+            bash stop.sh &&
+            bash start.sh &&
             bash validate.sh
           "
