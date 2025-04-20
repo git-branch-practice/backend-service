@@ -9,7 +9,7 @@ if [ -n "$PID" ]; then
 fi
 
 # JAR 실행 (복사된 ~/deploy 경로 기준)
-JAR_PATH=$(ls -t ~/deploy/*.jar | head -n 1)
+JAR_PATH=$(ls -t ~/deploy/backend/*.jar | head -n 1)
 
 if [ -z "$JAR_PATH" ]; then
   echo "[CD] ❌ No JAR file found to execute."
