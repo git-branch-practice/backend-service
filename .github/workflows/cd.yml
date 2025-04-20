@@ -1,45 +1,46 @@
-name: CD - Backend Deploy
+name: 🚀 CD - Backend Deploy from GCS
 
 on:
   push:
     branches:
-      - develop
       - main
+      - develop
 
 jobs:
   deploy:
     runs-on: ubuntu-22.04
-    environment:
-      name: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
 
     steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v3
+      - name: Install gcloud SDK
+        uses: google-github-actions/setup-gcloud@v1
         with:
-          name: backend-jar
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_KEY_JSON }}
+          export_default_credentials: true
 
-      - name: Create private key file
+      - name: Download .jar from GCS
+        run: |
+          gsutil cp gs://${{ secrets.GCS_BUCKET }}/backend/$GITHUB_SHA.jar ./app.jar
+
+      - name: Create SSH private key file
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Upload JAR and deploy scripts to VM
+      - name: Transfer JAR and deployment scripts to server
         run: |
+          scp -o StrictHostKeyChecking=no -i private_key.pem ./app.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/deploy/
           scp -o StrictHostKeyChecking=no -i private_key.pem ./deploy/*.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/deploy/
-          scp -o StrictHostKeyChecking=no -i private_key.pem ./*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/deploy/
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
 
-      - name: Run stop → start → validate
+      - name: Execute stop → start → validate
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
             bash ~/deploy/stop.sh &&
             bash ~/deploy/start.sh &&
             bash ~/deploy/validate.sh
           '
-        env:
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
