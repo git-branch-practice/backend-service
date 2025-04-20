@@ -54,17 +54,9 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no -i private_key.pem ./app.jar $SSH_USER@$SSH_HOST:~/deploy/backend/
 
-      - name: Git pull deploy scripts on server
+      - name: Transfer deploy scripts to server
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "
-            set -e
-            if [ ! -d ~/deploy/scripts/.git ]; then
-              git clone --depth 1 --branch $GIT_BRANCH https://github.com/git-branch-practice/backend-service.git ~/deploy
-            else
-              cd ~/deploy && git fetch && git checkout $GIT_BRANCH && git pull
-            fi
-            cp ~/deploy/*.sh ~/deploy/backend/
-          "
+          scp -o StrictHostKeyChecking=no -i private_key.pem ./deploy/*.sh $SSH_USER@$SSH_HOST:~/deploy/backend/
 
       - name: Execute stop → start → validate
         run: |
