@@ -3,8 +3,6 @@ name: CI - Backend Build & Upload to GCS
 on:
   push:
     branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
 
 jobs:
   build:
@@ -47,8 +45,7 @@ jobs:
       - name: Upload .jar to GCS
         run: |
           FILE_PATH=$(ls ./build/libs/*.jar | head -n 1)
-          FILE_NAME=$(basename "$FILE_PATH")
-          gsutil cp "$FILE_PATH" gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/$GITHUB_SHA.jar
+          gsutil cp "$FILE_PATH" gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/${{ github.sha }}.jar
 
       - name: Upload deploy scripts to GCS
         run: |
