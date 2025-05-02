@@ -31,7 +31,7 @@ jobs:
           username: ${{ secrets.DEV_SSH_USER }}
           key: ${{ secrets.DEV_SERVER_KEY }}
           source: |
-            build/libs/backend-service-0.0.1-SNAPSHOT.jar
-            deploy-be.sh
+            backend-service/build/libs/backend-service-0.0.1-SNAPSHOT.jar
+            backend-service/deploy-be.sh
           target: /home/mskim_glenn
 
