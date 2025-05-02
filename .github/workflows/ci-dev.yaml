@@ -1,36 +1,26 @@
 name: CI - Backend CI
 
 on:
-  push:
-    branches: [develop]
+  pull_request:
+    branches: [develop, main]
 
 jobs:
-  build-and-upload:
+  pr-test:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up JDK 21
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: temurin
 
-      - name: Grant execute permission to Gradle
-        run: chmod +x gradlew
+      - name: Grant execute permission
+        run: chmod +x backend-service/gradlew
 
-      - name: Build Spring Boot JAR
-        run: ./gradlew clean bootJar
-
-      - name: Upload JAR & Script to server
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.DEV_SSH_HOST }}
-          username: ${{ secrets.DEV_SSH_USER }}
-          key: ${{ secrets.DEV_SERVER_KEY }}
-          source: |
-            build/libs/*.jar
-            deploy-be.sh
-          target: /home/mskim_glenn
+#      - name: Run Tests1
+#        run: |
+#          cd backend-service
+#          ./gradlew test2

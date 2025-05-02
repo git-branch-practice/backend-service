@@ -5,7 +5,7 @@ echo "🚀 [START] 백엔드 서비스(Spring Boot) 배포 시작"
 
 # === [0] 설정 ===
 SERVICE_NAME="backend-service"
-JAR_PATH="*.jar"  # 현재 디렉토리에 존재하는 jar 하나만 대상으로 실행
+JAR_PATH="build/libs/*.jar"
 
 # === [1] 현재 위치 확인 ===
 echo "📁 현재 작업 디렉토리: $(pwd)"
