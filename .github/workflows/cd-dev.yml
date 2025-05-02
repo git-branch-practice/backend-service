@@ -20,5 +20,4 @@ jobs:
           username: ${{ secrets.DEV_SSH_USER }}
           key: ${{ secrets.DEV_SERVER_KEY }}
           script: |
-            cd backend-service
             bash deploy-be.sh

@@ -26,11 +26,14 @@ jobs:
           cd backend-service
           ./gradlew bootJar
 
-      - name: Upload jar to server via SCP
+      - name: Upload JAR & Script to server via SCP
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.DEV_SSH_HOST }}
           username: ${{ secrets.DEV_SSH_USER }}
           key: ${{ secrets.DEV_SERVER_KEY }}
-          source: backend-service/build/libs/backend-service-0.0.1-SNAPSHOT.jar
+          source: |
+            backend-service/build/libs/backend-service-0.0.1-SNAPSHOT.jar
+            backend-service/deploy-be.sh
           target: /home/mskim_glenn
+
