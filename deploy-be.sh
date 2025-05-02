@@ -5,7 +5,6 @@ echo "🚀 [START] 백엔드 서비스(Spring Boot) 배포 시작"
 
 # === [0] 설정 ===
 SERVICE_NAME="backend-service"
-PORT=8080
 JAR_PATH="build/libs/*.jar"
 
 # === [1] 현재 작업 디렉토리 확인 ===
@@ -24,5 +23,3 @@ pm2 start java \
 # === [4] PM2 상태 저장 및 확인 ===
 pm2 save
 pm2 status
-
-echo "✅ [DONE] 백엔드 서비스 배포 완료: http://localhost:$PORT"
