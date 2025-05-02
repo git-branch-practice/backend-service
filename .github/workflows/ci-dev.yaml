@@ -1,24 +1,15 @@
 name: CI - Backend CI
 
 on:
-  push:
-    branches: [develop]
+  pull_request:
+    branches: [develop, main]
 
 jobs:
-  build-and-prepare:
+  pr-test:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Remove existing backend-service dir
-        run: |
-          if [ -d "backend-service" ]; then
-            echo "🧹 기존 backend-service 삭제 중..."
-            rm -rf backend-service
-          fi
-
-      - name: Clone backend-service repo
-        run: |
-          git clone -b develop https://github.com/git-branch-practice/backend-service.git
+      - uses: actions/checkout@v3
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -26,10 +17,10 @@ jobs:
           java-version: '21'
           distribution: temurin
 
-      - name: Grant Gradle permission
+      - name: Grant execute permission
         run: chmod +x backend-service/gradlew
 
-      - name: Build jar
-        run: |
-          cd backend-service
-          ./gradlew bootJar
+#      - name: Run Tests1
+#        run: |
+#          cd backend-service
+#          ./gradlew test2

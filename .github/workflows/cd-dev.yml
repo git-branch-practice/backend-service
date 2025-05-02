@@ -20,5 +20,19 @@ jobs:
           username: ${{ secrets.DEV_SSH_USER }}
           key: ${{ secrets.DEV_SERVER_KEY }}
           script: |
+            # 기존 소스 삭제
+            if [ -d "backend-service" ]; then
+            echo "📦 기존 backend-service 삭제 중..."
+            rm -rf backend-service
+            fi
+            
+            # 최신 소스 클론
+            echo "📥 소스 클론 중..."
+            git clone -b develop https://github.com/git-branch-practice/backend-service.git
+            
+            echo "🚀 deploy-be.sh 실행"
             cd backend-service
             bash deploy-be.sh
+            
+          
+
