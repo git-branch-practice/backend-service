@@ -1,55 +1,55 @@
-name: CD - Deploy to Staging (Develop)
-
-on:
-  workflow_run:
-    workflows: ["CI - Frontend Build & Upload to GCS"]
-    types:
-      - completed
-
-jobs:
-  deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-22.04
-    environment:
-      name: staging
-
-    steps:
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_KEY_JSON }}
-
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      - name: Set env
-        run: |
-          echo "TARGET_ENV=dev" >> $GITHUB_ENV
-          echo "SSH_USER=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_ENV
-          echo "SSH_HOST=${{ secrets.DEV_SSH_HOST }}" >> $GITHUB_ENV
-
-      - name: Download from GCS
-        run: |
-          mkdir -p scripts
-          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/app.jar ./scripts/app.jar
-          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/*.sh ./scripts/
-
-      - name: Create SSH private key
-        run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Deploy to staging server
-        run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "mkdir -p ~/deploy/backend"
-          scp -o StrictHostKeyChecking=no -i private_key.pem ./scripts/* $SSH_USER@$SSH_HOST:~/deploy/backend/
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "
-            cd ~/deploy/backend &&
-            bash stop.sh &&
-            bash start.sh &&
-            bash validate.sh
-          "
+#name: CD - Deploy to Staging (Develop)
+#
+#on:
+#  workflow_run:
+#    workflows: ["CI - Frontend Build & Upload to GCS"]
+#    types:
+#      - completed
+#
+#jobs:
+#  deploy:
+#    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#    runs-on: ubuntu-22.04
+#    environment:
+#      name: staging
+#
+#    steps:
+#      - name: Authenticate to GCP
+#        uses: google-github-actions/auth@v1
+#        with:
+#          credentials_json: ${{ secrets.GCP_KEY_JSON }}
+#
+#      - name: Set up gcloud CLI
+#        uses: google-github-actions/setup-gcloud@v1
+#        with:
+#          project_id: ${{ secrets.GCP_PROJECT_ID }}
+#
+#      - name: Set env
+#        run: |
+#          echo "TARGET_ENV=dev" >> $GITHUB_ENV
+#          echo "SSH_USER=${{ secrets.DEV_SSH_USER }}" >> $GITHUB_ENV
+#          echo "SSH_HOST=${{ secrets.DEV_SSH_HOST }}" >> $GITHUB_ENV
+#
+#      - name: Download from GCS
+#        run: |
+#          mkdir -p scripts
+#          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/app.jar ./scripts/app.jar
+#          gsutil cp gs://${{ secrets.GCS_BUCKET }}/$TARGET_ENV/backend/*.sh ./scripts/
+#
+#      - name: Create SSH private key
+#        run: |
+#          echo "$SSH_PRIVATE_KEY" > private_key.pem
+#          chmod 600 private_key.pem
+#        env:
+#          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+#
+#      - name: Deploy to staging server
+#        run: |
+#          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "mkdir -p ~/deploy/backend"
+#          scp -o StrictHostKeyChecking=no -i private_key.pem ./scripts/* $SSH_USER@$SSH_HOST:~/deploy/backend/
+#          ssh -o StrictHostKeyChecking=no -i private_key.pem $SSH_USER@$SSH_HOST "
+#            cd ~/deploy/backend &&
+#            bash stop.sh &&
+#            bash start.sh &&
+#            bash validate.sh
+#          "
