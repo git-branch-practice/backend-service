@@ -20,7 +20,7 @@ cd "$HOME/backend-service"  # 프로젝트 루트
 ./gradlew build
 
 # === [4] JAR 파일 확인 ===
-JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
+JAR_FILE=$(find build/libs -name "*.jar" ! -name "*plain.jar" | head -n 1)
 
 if [[ -z "$JAR_FILE" ]]; then
   echo "❌ JAR 파일이 없습니다. 빌드를 확인하세요."
