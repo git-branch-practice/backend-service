@@ -5,20 +5,12 @@ on:
     branches: [develop]
 
 jobs:
-  build-and-prepare:
+  build-and-upload:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Remove existing backend-service dir
-        run: |
-          if [ -d "backend-service" ]; then
-            echo "🧹 기존 backend-service 삭제 중..."
-            rm -rf backend-service
-          fi
-
-      - name: Clone backend-service repo
-        run: |
-          git clone -b develop https://github.com/git-branch-practice/backend-service.git
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -27,9 +19,18 @@ jobs:
           distribution: temurin
 
       - name: Grant Gradle permission
-        run: chmod +x backend-service/gradlew
+        run: chmod +x ./backend-service/gradlew
 
       - name: Build jar
         run: |
           cd backend-service
           ./gradlew bootJar
+
+      - name: Upload jar to server via SCP
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.DEV_SSH_HOST }}
+          username: ${{ secrets.DEV_SSH_USER }}
+          key: ${{ secrets.DEV_SERVER_KEY }}
+          source: backend-service/build/libs/backend-service-0.0.1-SNAPSHOT.jar
+          target: /home/mskim_glenn
