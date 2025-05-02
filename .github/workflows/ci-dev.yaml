@@ -19,7 +19,7 @@ jobs:
           distribution: temurin
 
       - name: Grant Gradle permission
-        run: chmod +x ./backend-service/gradlew
+        run: chmod +x ./backend/gradlew
 
       - name: Build jar
         run: |
