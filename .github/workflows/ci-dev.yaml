@@ -1,4 +1,4 @@
-name: PR CI - Lint & Test
+name: CI - Backend CI
 
 on:
   pull_request:
