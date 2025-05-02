@@ -1,4 +1,4 @@
-name: CI - Backend CI
+name: PR CI - Lint & Test
 
 on:
   pull_request:
@@ -20,9 +20,7 @@ jobs:
           distribution: temurin
 
       - name: Grant execute permission
-        run: chmod +x backend-service/gradlew
+        run: chmod +x gradlew
 
-#      - name: Run Tests1
-#        run: |
-#          cd backend-service
-#          ./gradlew test4
+#      - name: Run Tests
+#        run: ./gradlew test
