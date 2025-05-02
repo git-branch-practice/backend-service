@@ -1,12 +1,13 @@
-name: CI - PR Lint & Test
+name: PR CI - Lint & Test
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [develop, main]
 
 jobs:
   pr-test:
     runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v3
 
@@ -17,7 +18,9 @@ jobs:
           distribution: temurin
 
       - name: Grant execute permission
-        run: chmod +x gradlew
+        run: chmod +x backend-service/gradlew
 
 #      - name: Run Tests
-#        run: ./gradlew test
+#        run: |
+#          cd backend-service
+#          ./gradlew test
