@@ -2,7 +2,7 @@ name: CD - Backend Deploy to Dev Server
 
 on:
   workflow_run:
-    workflows: ["CI - Backend Build (Dev)"]
+    workflows: ["CI - Backend CI"]
     types:
       - completed
 
