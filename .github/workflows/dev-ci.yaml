@@ -79,7 +79,6 @@ jobs:
   cd-deploy:
     name: Trigger CD after successful CI
     needs: build # CI Job이 build
-    if: startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/ci-cd/')
     uses: ./.github/workflows/dev-cd.yaml # CD 워크플로우 실행
     with:
       JAR_TIMESTAMP: ${{ needs.build.outputs.tag }}
