@@ -29,5 +29,4 @@ pm2 delete "$APP_NAME" || echo "ℹ️ 기존 PM2 프로세스 없음"
 echo "🚀 최신 JAR 실행 중: $JAR"
 pm2 start "java -jar $JAR" --name "$APP_NAME" --env .env
 
-# 5. 실패 종료 (CD에서 실패로 인식되게)
-exit 1
+
