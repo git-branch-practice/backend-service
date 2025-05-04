@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      JAR_TIMESTAMP: ${{ steps.date.outputs.tag }}
 
     steps:
       - name: Checkout code
@@ -83,4 +85,4 @@ jobs:
     secrets:
       DEV_HOST: ${{ secrets.DEV_HOST }}
       DEV_USER: ${{ secrets.DEV_USER }}
-      DEV_SSH_KEY: ${{ secrets.DEV_SSH_KEY }}
+      DEV_SSH_KEY: ${{ secrets.DEV_SㅎSH_KEY }}
