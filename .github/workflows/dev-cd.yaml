@@ -5,6 +5,7 @@ on:
     inputs:
       JAR_TIMESTAMP:
         required: true
+        type: string
     secrets:
       DEV_HOST:
         required: true
