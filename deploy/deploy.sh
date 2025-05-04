@@ -9,6 +9,14 @@ echo "🚀 [START] 백엔드 서비스(Spring Boot) 배포 시작"
 APP_NAME="nemo-backend"
 JAR="latest.jar"
 
+# ✅ pm2 설치 확인 및 설치
+if ! command -v pm2 &> /dev/null; then
+  echo "🔧 pm2가 설치되어 있지 않음. 설치 중..."
+  npm install -g pm2
+else
+  echo "✅ pm2 설치되어 있음"
+fi
+
 # 1. 기존 PM2 프로세스 종료
 echo "🛑 기존 PM2 프로세스 종료: $APP_NAME"
 pm2 delete "$APP_NAME" || echo "ℹ️ 기존 PM2 프로세스 없음"
