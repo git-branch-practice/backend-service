@@ -86,3 +86,5 @@ jobs:
       DEV_HOST: ${{ secrets.DEV_HOST }}
       DEV_USER: ${{ secrets.DEV_USER }}
       DEV_SSH_KEY: ${{ secrets.DEV_SSH_KEY }}
+
+      # 테스트 1
