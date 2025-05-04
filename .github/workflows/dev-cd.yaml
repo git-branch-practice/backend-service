@@ -2,6 +2,9 @@ name: CD - Deploy to Server (DEV)
 
 on:
   workflow_call:
+    inputs:
+      JAR_TIMESTAMP:
+        required: true
     secrets:
       DEV_HOST:
         required: true
@@ -30,21 +33,27 @@ jobs:
             # 1. 디렉토리 준비 및 이동
             mkdir -p ~/backend && cd backend
             
-            # 2. JAR 및 스크립트 다운로드
-            gsutil cp gs://6-nemo-bucket/v1/backend-deploy/dev/latest.jar .
-            gsutil cp gs://6-nemo-bucket/v1/backend-deploy/dev/previous.jar . || true
-            gsutil cp gs://6-nemo-bucket/v1/backend-deploy/dev/deploy/deploy.sh .
+            VERSION_TAG="${{ inputs.JAR_TIMESTAMP }}"
+            echo "전달받은 버전: $VERSION_TAG"
             
-            # 3. 실행 권한 부여
-            chmod +x deploy.sh rollback.sh validate.sh
+            # 2. 기존 latest.jar → previous.jar 백업
+            if [ -f latest.jar ]; then
+              echo "기존 latest.jar 백업 → previous.jar"
+              mv latest.jar previous.jar
+            else
+              echo "기존 latest.jar 없음 → 첫 배포"
+            fi
+            
+            # 2. timestamp jar 다운로드 후 latest로 저장
+            echo "⬇️ JAR 다운로드 중..."
+            gsutil cp gs://6-nemo-bucket/v1/backend-deploy/dev/${VERSION_TAG}.jar latest.jar
+            
+            # 3. 배포 스크립트 및 헬스체크 스크립트 다운로드
+            gsutil cp gs://6-nemo-bucket/v1/backend-deploy/dev/deploy/dev-deploy.sh .
+            gsutil cp gs://6-nemo-bucket/v1/backend-deploy/dev/deploy/validate.sh .
+            
+            # 4. 실행 권한 부여
+            chmod +x dev-deploy.sh validate.sh
             
             # 4. 배포 실행
-            ./deploy.sh
-            
-            
-
-            
-            
-
-
-
+            ./dev-deploy.sh

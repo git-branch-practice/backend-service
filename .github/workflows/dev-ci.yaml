@@ -2,7 +2,7 @@ name: CI - Build & Upload to GCS (DEV)
 
 on:
   push:
-    branches: [develop]
+    branches: [ci-cd/setup-dev-pipeline]
 
 jobs:
   build:
@@ -24,13 +24,14 @@ jobs:
         run: chmod +x ./gradlew
 
       # 3. 빌드 (테스트 생략)
-      - name: Build without tests
+      - name: Build without tests # pr-ci에서 테스트하므로 생략
         run: ./gradlew clean bootJar -x test
 
       # 4. 업로드할 파일명 생성 (timestamp)
       - name: Generate datetime tag
         id: date
         run: |
+          export TZ=Asia/Seoul
           tag=$(date +'%Y%m%d-%H%M')
           echo "tag=$tag" >> $GITHUB_OUTPUT
 
@@ -40,43 +41,30 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # 6. gcloud 및 gsutil 설정
+      # 6. gcloud 및 gsutil CLI 사용을 위한 GCP 인증 및 설정
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
         with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      # 7. Jar 경로 및 파일명 추출
-      - name: Get JAR file name
+      # 7. Jar 파일명 추출 및 시간으로 파일명 변경
+      - name: Rename JAR to timestamp
         id: jar
         run: |
           jar_path=$(ls build/libs/*SNAPSHOT.jar | head -n1)
-          jar_name=$(basename "$jar_path")
-          echo "JAR_PATH=$jar_path" >> $GITHUB_OUTPUT
-          echo "JAR_NAME=$jar_name" >> $GITHUB_OUTPUT
+          timestamp=${{ steps.date.outputs.tag }}
+          new_jar="build/libs/${timestamp}.jar"
+          mv "$jar_path" "$new_jar"
+          echo "JAR_PATH=$new_jar" >> $GITHUB_OUTPUT
 
-      # 8. GCS - 버전별 JAR 업로드
+      # 8. GCS - timestamp JAR 업로드
       - name: Upload versioned JAR to GCS
         uses: google-github-actions/upload-cloud-storage@v1
         with:
           path: ${{ steps.jar.outputs.JAR_PATH }}
-          destination: 6-nemo-bucket/v1/backend-deploy/dev/${{ steps.date.outputs.tag }}.jar/${{ steps.jar.outputs.JAR_NAME }}
-
-      # 9. GCS - latest/previous.jar 관리
-      - name: Copy latest to previous, then upload new latest
-        run: |
-          if gsutil ls gs://6-nemo-bucket/v1/backend-deploy/dev/latest.jar; then
-            echo "📦 백업: latest.jar → previous.jar"
-            gsutil cp gs://6-nemo-bucket/v1/backend-deploy/dev/latest.jar \
-                      gs://6-nemo-bucket/v1/backend-deploy/dev/previous.jar
-          else
-            echo "⚠️  latest.jar 없음 → 백업 생략"
-          fi
-
-          echo "⬆️ 새 latest.jar 업로드"
-          gsutil cp ${{ steps.jar.outputs.JAR_PATH }} \
-                    gs://6-nemo-bucket/v1/backend-deploy/dev/latest.jar
+          destination: 6-nemo-bucket/v1/backend-deploy/dev/
 
       # 10. GCS - 배포 스크립트 업로드
       - name: Upload deploy scripts to GCS
@@ -87,9 +75,11 @@ jobs:
 
   cd-deploy:
     name: Trigger CD after successful CI
-    needs: build
+    needs: build # CI Job이 build
     if: startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/ci-cd/')
-    uses: ./.github/workflows/dev-cd.yaml
+    uses: ./.github/workflows/dev-cd.yaml # CD 워크플로우 실행
+    with:
+      JAR_TIMESTAMP: ${{ steps.date.outputs.tag }}
     secrets:
       DEV_HOST: ${{ secrets.DEV_HOST }}
       DEV_USER: ${{ secrets.DEV_USER }}
