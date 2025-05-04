@@ -47,9 +47,6 @@ jobs:
       # 6. gcloud 및 gsutil CLI 사용을 위한 GCP 인증 및 설정
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
-        with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
 
       # 7. Jar 파일명 추출 및 시간으로 파일명 변경
       - name: Rename JAR to timestamp
