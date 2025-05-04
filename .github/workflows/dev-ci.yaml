@@ -38,6 +38,12 @@ jobs:
           tag=$(date +'%Y%m%d-%H%M')
           echo "tag=$tag" >> $GITHUB_OUTPUT
 
+      # 5. GCP 인증
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
       # 6. gcloud 및 gsutil CLI 사용을 위한 GCP 인증 및 설정
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
