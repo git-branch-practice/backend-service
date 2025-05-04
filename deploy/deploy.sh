@@ -6,6 +6,10 @@ set -euo pipefail
 
 echo "🚀 [START] 백엔드 서비스(Spring Boot) 배포 시작"
 
+# ✅ NVM 환경 수동 로드
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 APP_NAME="nemo-backend"
 JAR="latest.jar"
 
