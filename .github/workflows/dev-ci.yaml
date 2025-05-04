@@ -81,7 +81,7 @@ jobs:
     if: startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/ci-cd/')
     uses: ./.github/workflows/dev-cd.yaml # CD 워크플로우 실행
     with:
-      JAR_TIMESTAMP: ${{ steps.date.outputs.tag }}
+      JAR_TIMESTAMP: ${{ needs.build.outputs.JAR_TIMESTAMP }}
     secrets:
       DEV_HOST: ${{ secrets.DEV_HOST }}
       DEV_USER: ${{ secrets.DEV_USER }}
